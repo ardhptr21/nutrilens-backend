@@ -9,7 +9,6 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
 	if (!authorization || !authorization.startsWith("Bearer ")) {
 		return ServiceResponse.failure("Unauthorized", null, StatusCodes.UNAUTHORIZED).send(res);
 	}
-
 	const token = authorization.split(" ")[1];
 	const result = verifyToken(token);
 	if (!result.success) {

@@ -3,10 +3,10 @@ import { ServiceResponse } from "@/common/models/serviceResponse";
 import { signToken } from "@/common/utils/jwt";
 import { comparePasswordHash, hashPassword } from "@/common/utils/passwordHash";
 import { userRepository } from "../user/userRepository";
-import type { Login, Register } from "./authModel";
+import type { LoginModel, RegisterModel } from "./authModel";
 
 class AuthService {
-	public async register(user: Register["body"]) {
+	public async register(user: RegisterModel["body"]) {
 		const exists = await userRepository.existsByEmail(user.email);
 		if (exists) return ServiceResponse.failure("Email already in use", null, StatusCodes.CONFLICT);
 		user.password = await hashPassword(user.password);
@@ -15,7 +15,7 @@ class AuthService {
 		return ServiceResponse.success("User registered successfully", userWithoutPassword, StatusCodes.CREATED);
 	}
 
-	public async login(data: Login["body"]) {
+	public async login(data: LoginModel["body"]) {
 		const user = await userRepository.findByEmail(data.email);
 		if (!user) return ServiceResponse.failure("Invalid email or password", null, StatusCodes.UNAUTHORIZED);
 

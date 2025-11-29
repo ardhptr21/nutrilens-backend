@@ -1,8 +1,8 @@
 import z from "zod";
 import { CreateUserSchema } from "../user/userModel";
 
-export type Login = z.infer<typeof LoginSchema>;
-export type Register = z.infer<typeof RegisterSchema>;
+export type LoginModel = z.infer<typeof LoginSchema>;
+export type RegisterModel = z.infer<typeof RegisterSchema>;
 
 export const LoginSchema = z.object({
 	body: z.object({
