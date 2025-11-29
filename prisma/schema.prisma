@@ -32,3 +32,35 @@ model Preference {
 
   @@map("preferences")
 }
+
+model Nutrition {
+  id            String   @id @default(cuid())
+  logAt         DateTime @map("log_at") @db.Date
+  targetCal     Decimal  @default(2500) @map("target_cal")
+  targetFat     Decimal  @default(70) @map("target_fat")
+  targetCarbs   Decimal  @default(275) @map("target_carbs")
+  targetProtein Decimal  @default(50) @map("target_protein")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  meals Meal[]
+
+  @@map("nutritions")
+}
+
+model Meal {
+  id          String   @id @default(cuid())
+  nutritionId String   @map("nutrition_id")
+  name        String
+  description String?
+  cal         Decimal
+  fat         Decimal
+  protein     Decimal
+  carbs       Decimal
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  nutrition Nutrition @relation(fields: [nutritionId], references: [id], onDelete: Cascade)
+
+  @@map("meals")
+}
