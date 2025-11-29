@@ -7,12 +7,28 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id         String      @id @default(cuid())
+  name       String
+  email      String      @unique
+  password   String
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+  preference Preference?
 
   @@map("users")
+}
+
+model Preference {
+  id            String   @id @default(cuid())
+  userId        String   @unique @map("user_id")
+  targetCal     Decimal  @default(2500) @map("target_cal")
+  targetFat     Decimal  @default(70) @map("target_fat")
+  targetCarbs   Decimal  @default(275) @map("target_carbs")
+  targetProtein Decimal  @default(50) @map("target_protein")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("preferences")
 }

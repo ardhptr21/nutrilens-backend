@@ -12,14 +12,18 @@ class NutritionService {
 		if (!uploaded.uri || !uploaded.mimeType)
 			return ServiceResponse.failure("File upload failed", null, StatusCodes.INTERNAL_SERVER_ERROR);
 
+		const prompts = [
+			"Provide a detailed nutritional analysis of the food item in the image, including calorie, fat, protein, and carbs in grams. Format the response as a 'only' JSON object with appropriate keys. The json should be:\n",
+			`{"name:"(in bahasa)","cal":number,"fat":number,"protein":number,"carbs":number}`,
+		];
+
+		if (data.detail) prompts.push(`\nAdditional details: ${data.detail}\n`);
+
+		console.log(prompts.join(""));
+
 		const result = await gemini.models.generateContent({
 			model: "gemini-2.0-flash",
-			contents: createUserContent([
-				createPartFromUri(uploaded.uri, uploaded.mimeType),
-				"\n\n",
-				"Provide a detailed nutritional analysis of the food item in the image, including calorie, fat, protein, and carbs in grams. Format the response as a 'only' JSON object with appropriate keys. The json should be:\n",
-				`{"name:"(in bahasa)","cal":number,"fat":number,"protein":number,"carbs":number}`,
-			]),
+			contents: createUserContent([createPartFromUri(uploaded.uri, uploaded.mimeType), "\n\n", ...prompts]),
 		});
 
 		if (!result.text)

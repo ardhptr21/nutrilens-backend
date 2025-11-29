@@ -20,6 +20,8 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
 		return ServiceResponse.failure("Unauthorized", null, StatusCodes.UNAUTHORIZED).send(res);
 	}
 
-	req.user = user;
+	const { password: _, ...userWithoutPassword } = user;
+
+	req.user = userWithoutPassword;
 	return next();
 };

@@ -2,6 +2,7 @@ import { StatusCodes } from "http-status-codes";
 import { ServiceResponse } from "@/common/models/serviceResponse";
 import { signToken } from "@/common/utils/jwt";
 import { comparePasswordHash, hashPassword } from "@/common/utils/passwordHash";
+import { preferenceRepository } from "../preference/preferenceRepository";
 import { userRepository } from "../user/userRepository";
 import type { LoginModel, RegisterModel } from "./authModel";
 
@@ -11,6 +12,7 @@ class AuthService {
 		if (exists) return ServiceResponse.failure("Email already in use", null, StatusCodes.CONFLICT);
 		user.password = await hashPassword(user.password);
 		const newUser = await userRepository.create(user);
+		await preferenceRepository.create(newUser.id);
 		const { password: _, ...userWithoutPassword } = newUser;
 		return ServiceResponse.success("User registered successfully", userWithoutPassword, StatusCodes.CREATED);
 	}

@@ -8,5 +8,6 @@ export const ScanSchema = z.object({
 			.file()
 			.max(1024 * 1024 * 5, "File size should be less than 5MB")
 			.mime(["image/jpeg", "image/png"], "Only JPEG and PNG images are allowed"),
+		detail: z.string().max(500).optional().nullable(),
 	}),
 });

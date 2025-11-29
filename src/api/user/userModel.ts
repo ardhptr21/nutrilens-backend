@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { commonValidations } from "@/common/utils/commonValidation";
+import { UpdatePreferenceSchema } from "../preference/preferenceModel";
 
 export type User = z.infer<typeof UserSchema>;
 export type PublicUser = z.infer<typeof PublicUserSchema>;
-export type CreateUser = z.infer<typeof CreateUserSchema>;
+export type UpdateUserPreferenceModel = z.infer<typeof UpdateUserPreferenceSchema>;
 
 export const UserSchema = z.object({
 	id: commonValidations.id,
@@ -19,4 +20,8 @@ export const CreateUserSchema = UserSchema.pick({
 	name: true,
 	email: true,
 	password: true,
+});
+
+export const UpdateUserPreferenceSchema = z.object({
+	body: UpdatePreferenceSchema,
 });
