@@ -1,0 +1,62 @@
+{
+	"name": "nutrilens-backend",
+	"version": "1.0.0",
+	"description": "Nutrilens Backend application built with Express and TypeScript",
+	"license": "MIT",
+	"main": "index.ts",
+	"private": true,
+	"scripts": {
+		"build": "tsc && tsup",
+		"start:dev": "node --import=tsx --watch src/index.ts",
+		"start:prod": "node dist/index.js",
+		"check": "biome check --write",
+		"db:dev": "prisma migrate dev",
+		"db:prod": "prisma migrate deploy",
+		"db:generate": "prisma generate",
+		"db:studio": "prisma studio"
+	},
+	"dependencies": {
+		"@prisma/adapter-pg": "^7.0.1",
+		"@prisma/client": "^7.0.1",
+		"bcrypt": "^6.0.0",
+		"cors": "2.8.5",
+		"dotenv": "17.2.1",
+		"express": "5.1.0",
+		"http-status-codes": "2.3.0",
+		"jsonwebtoken": "^9.0.2",
+		"pg": "^8.16.3",
+		"pino": "9.9.0",
+		"pino-http": "10.5.0",
+		"zod": "3.25.76"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.1.4",
+		"@types/bcrypt": "^6.0.0",
+		"@types/cors": "2.8.19",
+		"@types/express": "5.0.3",
+		"@types/jsonwebtoken": "^9.0.10",
+		"@types/pg": "^8.15.6",
+		"pino-pretty": "13.1.1",
+		"prisma": "^7.0.1",
+		"tsup": "8.5.0",
+		"tsx": "4.20.4",
+		"typescript": "5.9.2"
+	},
+	"tsup": {
+		"entry": [
+			"src/index.ts"
+		],
+		"outDir": "dist",
+		"format": [
+			"esm",
+			"cjs"
+		],
+		"target": "es2020",
+		"sourcemap": true,
+		"clean": true,
+		"dts": true,
+		"splitting": false,
+		"skipNodeModulesBundle": true
+	},
+	"packageManager": "pnpm@10.24.0+sha512.01ff8ae71b4419903b65c60fb2dc9d34cf8bb6e06d03bde112ef38f7a34d6904c424ba66bea5cdcf12890230bf39f9580473140ed9c946fef328b6e5238a345a"
+}
