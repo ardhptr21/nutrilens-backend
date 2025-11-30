@@ -1,11 +1,12 @@
 import { createPartFromUri, createUserContent } from "@google/genai";
 import { StatusCodes } from "http-status-codes";
 import { gemini } from "@/common/lib/gemini";
+import { prisma } from "@/common/lib/prisma";
 import { ServiceResponse } from "@/common/models/serviceResponse";
 import type { ScanModel } from "./nutritionModel";
 
 class NutritionService {
-	public async scan(data: ScanModel["body"]) {
+	public async scan(data: ScanModel["body"], userId: string) {
 		const uploaded = await gemini.files.upload({
 			file: data.image,
 		});
@@ -34,8 +35,50 @@ class NutritionService {
 		const jsonString = result.text.substring(jsonStart, jsonEnd);
 		const nutritionData = JSON.parse(jsonString);
 
-		return ServiceResponse.success("Nutrition data retrieved", nutritionData, StatusCodes.OK);
+		try {
+			// Get user's preference for target nutrition
+			const userPreference = await prisma.preference.findUnique({
+				where: { userId },
+			});
+
+			// Create nutrition record for today
+			const today = new Date();
+			today.setHours(0, 0, 0, 0);
+
+			const nutrition = await prisma.nutrition.create({
+				data: {
+					userId,
+					logAt: today,
+					targetCal: userPreference?.targetCal || 2500,
+					targetFat: userPreference?.targetFat || 70,
+					targetCarbs: userPreference?.targetCarbs || 275,
+					targetProtein: userPreference?.targetProtein || 50,
+					meals: {
+						create: {
+							name: nutritionData.name,
+							cal: nutritionData.cal,
+							fat: nutritionData.fat,
+							protein: nutritionData.protein,
+							carbs: nutritionData.carbs,
+						},
+					},
+				},
+				include: {
+					meals: true,
+				},
+			});
+
+			return ServiceResponse.success("Nutrition data retrieved and saved", {
+				...nutritionData,
+				mealId: nutrition.meals[0]?.id,
+				nutritionId: nutrition.id,
+			}, StatusCodes.OK);
+		} catch (error) {
+			console.error("Error saving nutrition data:", error);
+			return ServiceResponse.success("Nutrition data retrieved (not saved)", nutritionData, StatusCodes.OK);
+		}
 	}
 }
 
 export const nutritionService = new NutritionService();
+

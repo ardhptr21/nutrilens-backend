@@ -13,3 +13,8 @@ nutritionRouter.post(
 	validateRequest(ScanSchema),
 	nutritionController.scan,
 );
+
+nutritionRouter.get("/history", auth, nutritionController.getHistory);
+
+nutritionRouter.get("/history/:date", auth, nutritionController.getHistoryDetail);
+
