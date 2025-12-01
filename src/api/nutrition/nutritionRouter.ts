@@ -2,11 +2,10 @@ import { Router } from "express";
 import { auth } from "@/common/middleware/auth";
 import { acceptFiles, validateRequest } from "@/common/utils/httpHandlers";
 import { nutritionController } from "./nutritionController";
-import { ScanSchema, MealUploadSchema } from "./nutritionModel";
+import { MealUploadSchema, ScanSchema } from "./nutritionModel";
 
 export const nutritionRouter = Router();
 
-// Scan food from image
 nutritionRouter.post(
 	"/scan",
 	auth,
@@ -15,7 +14,6 @@ nutritionRouter.post(
 	nutritionController.scan,
 );
 
-// Create meal with image upload
 nutritionRouter.post(
 	"/meals",
 	auth,
@@ -24,6 +22,5 @@ nutritionRouter.post(
 	nutritionController.uploadMeal,
 );
 
-// Get nutrition statistics for a specific date
+nutritionRouter.get("/today", auth, nutritionController.getStatisticsToday);
 nutritionRouter.get("/:date", auth, nutritionController.getStatistics);
-

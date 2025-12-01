@@ -17,6 +17,7 @@ const app: Express = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
+app.use("/uploads", express.static("uploads"));
 
 // Request logging
 app.use(requestLogger);
