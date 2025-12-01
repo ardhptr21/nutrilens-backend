@@ -30,7 +30,14 @@ class NutritionRepository {
 		});
 	}
 
-	async createNutrition(userId: string, logAt: Date, targetCal: any, targetFat: any, targetCarbs: any, targetProtein: any) {
+	async createNutrition(
+		userId: string,
+		logAt: Date,
+		targetCal: number,
+		targetFat: number,
+		targetCarbs: number,
+		targetProtein: number,
+	) {
 		return await prisma.nutrition.create({
 			data: {
 				userId,
@@ -43,7 +50,16 @@ class NutritionRepository {
 		});
 	}
 
-	async createMeal(nutritionId: string, name: string, image: string | null, description: string | null, cal: number, fat: number, protein: number, carbs: number) {
+	async createMeal(
+		nutritionId: string,
+		name: string,
+		image: string | null,
+		description: string | null,
+		cal: number,
+		fat: number,
+		protein: number,
+		carbs: number,
+	) {
 		return await prisma.meal.create({
 			data: {
 				nutritionId,
