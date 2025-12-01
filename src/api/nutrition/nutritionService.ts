@@ -3,7 +3,8 @@ import { StatusCodes } from "http-status-codes";
 import { gemini } from "@/common/lib/gemini";
 import { prisma } from "@/common/lib/prisma";
 import { ServiceResponse } from "@/common/models/serviceResponse";
-import type { ScanModel, CreateMealModel } from "./nutritionModel";
+import { nutritionRepository } from "./nutritionRepository";
+import type { ScanModel, CreateMealModel, MealUploadModel } from "./nutritionModel";
 
 class NutritionService {
 	public async scan(data: ScanModel["body"], userId: string) {
@@ -76,6 +77,7 @@ class NutritionService {
 				data: {
 					nutritionId: nutrition.id,
 					name: data.name,
+					image: data.image || null,
 					description: data.description || null,
 					cal: data.cal,
 					fat: data.fat,
@@ -90,6 +92,7 @@ class NutritionService {
 					id: meal.id,
 					nutritionId: nutrition.id,
 					name: meal.name,
+					image: meal.image,
 					description: meal.description,
 					cal: Number(meal.cal),
 					fat: Number(meal.fat),
@@ -111,31 +114,12 @@ class NutritionService {
 
 	public async getStatistics(userId: string, date: Date) {
 		try {
-			// Parse the date to get start and end of day
+			// Parse the date to get start of day
 			const startOfDay = new Date(date);
 			startOfDay.setHours(0, 0, 0, 0);
 
-			const endOfDay = new Date(date);
-			endOfDay.setHours(23, 59, 59, 999);
-
 			// Get nutrition record for the specified date
-			const nutrition = await prisma.nutrition.findFirst({
-				where: {
-					userId,
-					logAt: {
-						gte: startOfDay,
-						lte: endOfDay,
-					},
-				},
-				include: {
-					meals: true,
-					user: {
-						select: {
-							preference: true,
-						},
-					},
-				},
-			});
+			const nutrition = await nutritionRepository.findNutritionWithMealsByUserIdAndDate(userId, startOfDay);
 
 			if (!nutrition) {
 				return ServiceResponse.success(
@@ -172,6 +156,7 @@ class NutritionService {
 				meals: nutrition.meals.map((meal) => ({
 					id: meal.id,
 					name: meal.name,
+					image: meal.image,
 					description: meal.description,
 					cal: Number(meal.cal),
 					fat: Number(meal.fat),
@@ -190,6 +175,75 @@ class NutritionService {
 			console.error("Error fetching nutrition statistics:", error);
 			return ServiceResponse.failure(
 				"Failed to fetch nutrition statistics",
+				null,
+				StatusCodes.INTERNAL_SERVER_ERROR,
+			);
+		}
+	}
+
+	public async uploadMeal(data: MealUploadModel["body"], userId: string) {
+		try {
+			// Get user's preference
+			const userPreference = await prisma.preference.findUnique({
+				where: { userId },
+			});
+
+			// Create nutrition record for today (auto detect)
+			const today = new Date();
+			today.setHours(0, 0, 0, 0);
+
+			// Check if nutrition record for today already exists
+			let nutrition = await nutritionRepository.findNutritionByUserIdAndDate(userId, today);
+
+			// If not exists, create new
+			if (!nutrition) {
+				nutrition = await nutritionRepository.createNutrition(
+					userId,
+					today,
+					userPreference?.targetCal,
+					userPreference?.targetFat,
+					userPreference?.targetCarbs,
+					userPreference?.targetProtein,
+				);
+			}
+
+			// Generate image path for storage
+			// Format: /uploads/meals/USERID/TIMESTAMP-FILENAME
+			const timestamp = Date.now();
+			const imagePath = `/uploads/meals/${userId}/${timestamp}-${data.image.name}`;
+
+			// Create meal with image path
+			const meal = await nutritionRepository.createMeal(
+				nutrition.id,
+				data.name,
+				imagePath,
+				data.description || null,
+				data.cal,
+				data.fat,
+				data.protein,
+				data.carbs,
+			);
+
+			return ServiceResponse.success(
+				"Meal with image created successfully",
+				{
+					id: meal.id,
+					nutritionId: nutrition.id,
+					name: meal.name,
+					image: meal.image,
+					description: meal.description,
+					cal: Number(meal.cal),
+					fat: Number(meal.fat),
+					protein: Number(meal.protein),
+					carbs: Number(meal.carbs),
+					createdAt: meal.createdAt,
+				},
+				StatusCodes.CREATED,
+			);
+		} catch (error) {
+			console.error("Error creating meal with image:", error);
+			return ServiceResponse.failure(
+				"Failed to create meal with image",
 				null,
 				StatusCodes.INTERNAL_SERVER_ERROR,
 			);

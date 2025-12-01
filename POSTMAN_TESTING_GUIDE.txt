@@ -114,32 +114,32 @@ Response (200 OK):
 
 ================================================================================
 
-STEP 5: CREATE MEAL PERTAMA (HARI OTOMATIS HARI INI)
-=====================================================
+STEP 5: CREATE MEAL PERTAMA (DENGAN IMAGE UPLOAD)
+================================================
 Method: POST
 URL: http://localhost:8080/nutritions/meals
 Headers:
   Authorization: Bearer <TOKEN>
-  Content-Type: application/json
+  Content-Type: multipart/form-data
 
-Body:
-{
-  "name": "Nasi Goreng",
-  "cal": 450,
-  "fat": 15,
-  "protein": 12,
-  "carbs": 65,
-  "description": "Nasi goreng dengan telur dan sayuran"
-}
+Body (Form-Data):
+  - Key: "name" → Value: "Nasi Goreng"
+  - Key: "cal" → Value: "450"
+  - Key: "fat" → Value: "15"
+  - Key: "protein" → Value: "12"
+  - Key: "carbs" → Value: "65"
+  - Key: "description" → Value: "Nasi goreng dengan telur dan sayuran"
+  - Key: "image" → Value: [Pilih file gambar JPEG/PNG, max 5MB]
 
 Response (201 Created):
 {
   "success": true,
-  "message": "Meal created successfully",
+  "message": "Meal with image created successfully",
   "responseObject": {
     "id": "meal-123",
     "nutritionId": "nutrition-456",
     "name": "Nasi Goreng",
+    "image": "/uploads/meals/userid/1701432000-nasi-goreng.jpg",
     "description": "Nasi goreng dengan telur dan sayuran",
     "cal": 450,
     "fat": 15,
@@ -151,6 +151,8 @@ Response (201 Created):
 }
 
 ⭐ Otomatis membuat Nutrition record untuk hari ini jika belum ada!
+⭐ Upload gambar langsung! Path disimpan ke database.
+⭐ Format: /uploads/meals/{userid}/{timestamp}-{filename}
 
 ================================================================================
 
@@ -160,26 +162,26 @@ Method: POST
 URL: http://localhost:8080/nutritions/meals
 Headers:
   Authorization: Bearer <TOKEN>
-  Content-Type: application/json
+  Content-Type: multipart/form-data
 
-Body:
-{
-  "name": "Ayam Bakar",
-  "cal": 350,
-  "fat": 20,
-  "protein": 40,
-  "carbs": 5,
-  "description": "Ayam bakar tanpa minyak"
-}
+Body (Form-Data):
+  - Key: "name" → Value: "Ayam Bakar"
+  - Key: "cal" → Value: "350"
+  - Key: "fat" → Value: "20"
+  - Key: "protein" → Value: "40"
+  - Key: "carbs" → Value: "5"
+  - Key: "description" → Value: "Ayam bakar tanpa minyak"
+  - Key: "image" → Value: [Pilih file gambar JPEG/PNG, max 5MB]
 
 Response (201 Created):
 {
   "success": true,
-  "message": "Meal created successfully",
+  "message": "Meal with image created successfully",
   "responseObject": {
     "id": "meal-124",
     "nutritionId": "nutrition-456",
     "name": "Ayam Bakar",
+    "image": "/uploads/meals/userid/1701432001-ayam-bakar.jpg",
     "description": "Ayam bakar tanpa minyak",
     "cal": 350,
     "fat": 20,
@@ -225,6 +227,7 @@ Response (200 OK) - FORMAT SESUAI SCHEMA PRISMA:
       {
         "id": "meal-123",
         "name": "Nasi Goreng",
+        "image": "https://example.com/nasi-goreng.jpg",
         "description": "Nasi goreng dengan telur dan sayuran",
         "cal": 450,
         "fat": 15,
@@ -235,6 +238,7 @@ Response (200 OK) - FORMAT SESUAI SCHEMA PRISMA:
       {
         "id": "meal-124",
         "name": "Ayam Bakar",
+        "image": "https://example.com/ayam-bakar.jpg",
         "description": "Ayam bakar tanpa minyak",
         "cal": 350,
         "fat": 20,
@@ -281,6 +285,135 @@ Response (200 OK):
 Anda bisa copy-paste nilai ke Step 5 untuk membuat meal.
 
 ================================================================================
+                              TESTING IMAGE FIELD
+================================================================================
+
+TESTING STEP: Verifikasi Image Field pada Meals
+=================================================
+
+Setelah menjalankan Step 5 & 6 (Create Meal), ikuti langkah berikut untuk 
+memverifikasi bahwa image field telah berhasil ditambahkan ke database:
+
+1. JALANKAN STEP 5 & 6 (Create Meal dengan image)
+   - Pastikan body request include field "image"
+   - Perhatikan di response: image field harus ada di responseObject
+   Contoh response dari Step 5:
+   {
+     "success": true,
+     "message": "Meal created successfully",
+     "responseObject": {
+       "id": "meal-123",
+       "nutritionId": "nutrition-456",
+       "name": "Nasi Goreng",
+       "image": "https://example.com/nasi-goreng.jpg",    ← IMAGE FIELD INI!
+       "description": "Nasi goreng dengan telur dan sayuran",
+       ...
+     }
+   }
+
+2. JALANKAN STEP 7 (Get Nutrition Statistics)
+   - Method: GET
+   - URL: http://localhost:8080/nutritions/2025-12-01 (gunakan tanggal hari ini)
+   - Headers: Authorization: Bearer <TOKEN>
+   
+   Perhatikan di response dalam array "meals", setiap meal harus memiliki 
+   field "image":
+   
+   {
+     "success": true,
+     "message": "Nutrition statistics retrieved",
+     "responseObject": {
+       "id": "nutrition-456",
+       "logAt": "2025-12-01T00:00:00.000Z",
+       "meals": [
+         {
+           "id": "meal-123",
+           "name": "Nasi Goreng",
+           "image": "https://example.com/nasi-goreng.jpg",  ← IMAGE FIELD INI!
+           "description": "Nasi goreng dengan telur dan sayuran",
+           "cal": 450,
+           ...
+         }
+       ]
+     }
+   }
+
+3. JIKA IMAGE FIELD TERLIHAT DI RESPONSE:
+   ✅ Image field berhasil ditambahkan ke database!
+   ✅ Meal model sudah ter-update dengan image property
+   ✅ Prisma client sudah ter-generate dengan benar
+   
+   Tips: Buka database management tool (pgAdmin, DBeaver, atau Prisma Studio)
+   dan periksa tabel "meals" - seharusnya ada kolom "image" baru.
+
+4. JIKA IMAGE FIELD TIDAK TERLIHAT:
+   ❌ Kemungkinan Prisma client belum di-regenerate
+   ❌ Solusi: Jalankan command: pnpm exec prisma generate
+   ❌ Atau jalankan migration: pnpm exec prisma migrate dev
+
+TESTING IMAGE FIELD DENGAN BERBAGAI FORMAT:
+=============================================
+
+A. URL String (Recommended for testing):
+   "image": "https://example.com/food.jpg"
+   "image": "https://media.example.com/meals/nasi-goreng.png"
+
+B. Local Path:
+   "image": "/uploads/meals/2025-12-01/meal-123.jpg"
+
+C. Base64 Encoded (untuk future implementation):
+   "image": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEA..."
+
+D. Null/Empty (Optional field):
+   "image": null
+   atau tidak include field sama sekali
+
+TESTING SCENARIO:
+=================
+
+TEST 1: Create Meal with Image URL
+   Method: POST
+   URL: http://localhost:8080/nutritions/meals
+   Body: 
+   {
+     "name": "Burger Ayam",
+     "image": "https://cdn-icons-png.flaticon.com/512/3729/3729412.png",
+     "cal": 550,
+     "fat": 25,
+     "protein": 35,
+     "carbs": 45
+   }
+   Expected: Response includes image field ✅
+
+TEST 2: Create Meal without Image (Optional)
+   Method: POST
+   URL: http://localhost:8080/nutritions/meals
+   Body: 
+   {
+     "name": "Salad Sayuran",
+     "cal": 150,
+     "fat": 5,
+     "protein": 8,
+     "carbs": 20
+   }
+   Expected: Response includes image field (null) atau tidak ada field ✅
+
+TEST 3: Get Statistics - Verify all meals have image field
+   Method: GET
+   URL: http://localhost:8080/nutritions/2025-12-01
+   Expected: Semua meals di array "meals" include image field ✅
+
+VERIFICATION CHECKLIST:
+=======================
+[ ] Image field muncul di response Step 5 (Create Meal 1)
+[ ] Image field muncul di response Step 6 (Create Meal 2)
+[ ] Image field muncul di GET Statistics response
+[ ] Setiap meal di array "meals" memiliki field "image"
+[ ] Image value sesuai dengan yang dikirim di request body
+[ ] Jika tidak ada image di request, field image tetap ada (null atau empty)
+[ ] Database table "meals" memiliki kolom "image" baru
+
+================================================================================
                               CHECKLIST TESTING
 ================================================================================
 
@@ -288,8 +421,8 @@ Anda bisa copy-paste nilai ke Step 5 untuk membuat meal.
 [ ] 2. Register: POST http://localhost:8080/auth/register + body
 [ ] 3. Login: POST http://localhost:8080/auth/login + body → COPY TOKEN
 [ ] 4. Get Preference: GET http://localhost:8080/users/me/preference + auth
-[ ] 5. Create Meal 1: POST http://localhost:8080/nutritions/meals + body + auth
-[ ] 6. Create Meal 2: POST http://localhost:8080/nutritions/meals + body + auth
+[ ] 5. Create Meal 1 (with image): POST http://localhost:8080/nutritions/meals + form-data + auth
+[ ] 6. Create Meal 2 (with image): POST http://localhost:8080/nutritions/meals + form-data + auth
 [ ] 7. Get Statistics: GET http://localhost:8080/nutritions/2025-12-01 + auth
 [ ] 8 (Optional). Scan Image: POST http://localhost:8080/nutritions/scan + file + auth
 
@@ -318,14 +451,14 @@ OPTION 2: MANUAL COPY-PASTE SETIAP REQUEST
 3. Contoh: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ================================================================================
-                              IMPORTANT NOTES
+                            IMPORTANT NOTES
 ================================================================================
 
 ✓ Endpoint /nutritions/meals membuat meal dan otomatis detect hari hari ini
 ✓ Endpoint /nutritions/:date mengambil statistik nutrisi untuk tanggal tertentu
 ✓ Semua nama field di response mengikuti schema Prisma
-✓ Field yang ada: id, date, cal, fat, protein, carbs, targetCal, targetFat, 
-  targetCarbs, targetProtein, meals
+✓ Field yang ada: id, logAt, cal, fat, protein, carbs, targetCal, targetFat, 
+  targetCarbs, targetProtein, meals (dengan image)
 ✓ Data cal, fat, protein, carbs adalah TOTAL dari semua meals di hari itu
 ✓ targetCal, targetFat, etc adalah dari user preference
 ✓ Format date di parameter: YYYY-MM-DD
@@ -333,8 +466,8 @@ OPTION 2: MANUAL COPY-PASTE SETIAP REQUEST
 ✓ Semua request di-filter berdasarkan user yang login (req.user.id)
 ✓ Maksimal file gambar (scan): 5MB, format: JPEG atau PNG
 ✓ Field "description" di create meal adalah optional
-
-================================================================================
+✓ NEW: Field "image" di meals adalah optional - bisa URL atau local path
+✓ NEW: Image field akan di-return di response create meal dan get statistics================================================================================
                             ERROR HANDLING
 ================================================================================
 
