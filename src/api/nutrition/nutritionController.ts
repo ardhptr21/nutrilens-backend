@@ -12,6 +12,11 @@ class NutritionController {
 		return serviceResponse.send(res);
 	};
 
+	public uploadMeal: RequestHandler = async (req, res) => {
+		const serviceResponse = await nutritionService.uploadMeal(req.validated.body, req.user.id);
+		return serviceResponse.send(res);
+	};
+
 	public getStatistics: RequestHandler = async (req, res) => {
 		const { date } = req.params;
 		const parsedDate = new Date(date);
