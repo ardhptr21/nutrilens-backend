@@ -1,6 +1,5 @@
 import type { RequestHandler } from "express";
 import { nutritionService } from "./nutritionService";
-import { nutritionHistoryService } from "./nutritionHistoryService";
 
 class NutritionController {
 	public scan: RequestHandler = async (req, res) => {
@@ -8,12 +7,12 @@ class NutritionController {
 		return serviceResponse.send(res);
 	};
 
-	public getHistory: RequestHandler = async (req, res) => {
-		const serviceResponse = await nutritionHistoryService.getHistory(req.user.id);
+	public createMeal: RequestHandler = async (req, res) => {
+		const serviceResponse = await nutritionService.createMeal(req.validated.body, req.user.id);
 		return serviceResponse.send(res);
 	};
 
-	public getHistoryDetail: RequestHandler = async (req, res) => {
+	public getStatistics: RequestHandler = async (req, res) => {
 		const { date } = req.params;
 		const parsedDate = new Date(date);
 
@@ -25,7 +24,7 @@ class NutritionController {
 			});
 		}
 
-		const serviceResponse = await nutritionHistoryService.getHistoryDetail(req.user.id, parsedDate);
+		const serviceResponse = await nutritionService.getStatistics(req.user.id, parsedDate);
 		return serviceResponse.send(res);
 	};
 }

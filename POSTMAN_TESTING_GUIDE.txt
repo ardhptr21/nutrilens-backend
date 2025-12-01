@@ -1,0 +1,383 @@
+================================================================================
+                    POSTMAN TESTING GUIDE - NUTRILENS BACKEND
+================================================================================
+
+Base URL: http://localhost:8080
+
+================================================================================
+                              TESTING FLOW LENGKAP
+================================================================================
+
+STEP 1: HEALTH CHECK
+====================
+Method: GET
+URL: http://localhost:8080/health-check
+Headers: -
+Body: Kosong
+
+Response (200 OK):
+{
+  "success": true,
+  "message": "Service is healthy",
+  "responseObject": null,
+  "statusCode": 200
+}
+
+================================================================================
+
+STEP 2: REGISTER USER
+====================
+Method: POST
+URL: http://localhost:8080/auth/register
+Headers: Content-Type: application/json
+
+Body:
+{
+  "name": "Test User",
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+Response (201 Created):
+{
+  "success": true,
+  "message": "User registered successfully",
+  "responseObject": {
+    "id": "cxyz123abc",
+    "name": "Test User",
+    "email": "test@example.com",
+    "createdAt": "2025-12-01T10:00:00Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  "statusCode": 201
+}
+
+================================================================================
+
+STEP 3: LOGIN & COPY TOKEN
+===========================
+Method: POST
+URL: http://localhost:8080/auth/login
+Headers: Content-Type: application/json
+
+Body:
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+Response (200 OK):
+{
+  "success": true,
+  "message": "Login successful",
+  "responseObject": {
+    "user": {
+      "id": "cxyz123abc",
+      "name": "Test User",
+      "email": "test@example.com"
+    },
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  },
+  "statusCode": 200
+}
+
+⭐ COPY TOKEN INI! Akan digunakan untuk step berikutnya.
+Token disimpan di variable Postman atau di copy manual di setiap request.
+
+================================================================================
+
+STEP 4: GET USER PREFERENCE (OPTIONAL)
+=======================================
+Method: GET
+URL: http://localhost:8080/users/me/preference
+Headers:
+  Authorization: Bearer <TOKEN>
+  Content-Type: application/json
+Body: Kosong
+
+Response (200 OK):
+{
+  "success": true,
+  "message": "Preference retrieved successfully",
+  "responseObject": {
+    "id": "pref-123",
+    "userId": "cxyz123abc",
+    "targetCal": 2500,
+    "targetFat": 70,
+    "targetCarbs": 275,
+    "targetProtein": 50,
+    "createdAt": "2025-12-01T10:00:00Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  "statusCode": 200
+}
+
+================================================================================
+
+STEP 5: CREATE MEAL PERTAMA (HARI OTOMATIS HARI INI)
+=====================================================
+Method: POST
+URL: http://localhost:8080/nutritions/meals
+Headers:
+  Authorization: Bearer <TOKEN>
+  Content-Type: application/json
+
+Body:
+{
+  "name": "Nasi Goreng",
+  "cal": 450,
+  "fat": 15,
+  "protein": 12,
+  "carbs": 65,
+  "description": "Nasi goreng dengan telur dan sayuran"
+}
+
+Response (201 Created):
+{
+  "success": true,
+  "message": "Meal created successfully",
+  "responseObject": {
+    "id": "meal-123",
+    "nutritionId": "nutrition-456",
+    "name": "Nasi Goreng",
+    "description": "Nasi goreng dengan telur dan sayuran",
+    "cal": 450,
+    "fat": 15,
+    "protein": 12,
+    "carbs": 65,
+    "createdAt": "2025-12-01T10:00:00Z"
+  },
+  "statusCode": 201
+}
+
+⭐ Otomatis membuat Nutrition record untuk hari ini jika belum ada!
+
+================================================================================
+
+STEP 6: CREATE MEAL KEDUA (HARI YANG SAMA, AUTO DITAMBAH)
+=========================================================
+Method: POST
+URL: http://localhost:8080/nutritions/meals
+Headers:
+  Authorization: Bearer <TOKEN>
+  Content-Type: application/json
+
+Body:
+{
+  "name": "Ayam Bakar",
+  "cal": 350,
+  "fat": 20,
+  "protein": 40,
+  "carbs": 5,
+  "description": "Ayam bakar tanpa minyak"
+}
+
+Response (201 Created):
+{
+  "success": true,
+  "message": "Meal created successfully",
+  "responseObject": {
+    "id": "meal-124",
+    "nutritionId": "nutrition-456",
+    "name": "Ayam Bakar",
+    "description": "Ayam bakar tanpa minyak",
+    "cal": 350,
+    "fat": 20,
+    "protein": 40,
+    "carbs": 5,
+    "createdAt": "2025-12-01T10:30:00Z"
+  },
+  "statusCode": 201
+}
+
+⭐ Otomatis ditambahkan ke Nutrition record yang sama untuk hari ini!
+
+================================================================================
+
+STEP 7: GET NUTRITION STATISTICS (DETAIL PER TANGGAL)
+====================================================
+Method: GET
+URL: http://localhost:8080/nutritions/2025-12-01
+Headers:
+  Authorization: Bearer <TOKEN>
+  Content-Type: application/json
+Body: Kosong
+
+Format Date Parameter: YYYY-MM-DD
+Contoh: 2025-12-01, 2025-11-30, dll
+
+Response (200 OK) - FORMAT SESUAI SCHEMA PRISMA:
+{
+  "success": true,
+  "message": "Nutrition statistics retrieved",
+  "responseObject": {
+    "id": "nutrition-456",
+    "logAt": "2025-12-01T00:00:00.000Z",
+    "cal": 800,                 ← Total cal dari 2 meals (450 + 350)
+    "fat": 35,                  ← Total fat (15 + 20)
+    "protein": 52,              ← Total protein (12 + 40)
+    "carbs": 70,                ← Total carbs (65 + 5)
+    "targetCal": 2500,          ← Target dari user preference
+    "targetFat": 70,
+    "targetCarbs": 275,
+    "targetProtein": 50,
+    "meals": [
+      {
+        "id": "meal-123",
+        "name": "Nasi Goreng",
+        "description": "Nasi goreng dengan telur dan sayuran",
+        "cal": 450,
+        "fat": 15,
+        "protein": 12,
+        "carbs": 65,
+        "createdAt": "2025-12-01T10:00:00Z"
+      },
+      {
+        "id": "meal-124",
+        "name": "Ayam Bakar",
+        "description": "Ayam bakar tanpa minyak",
+        "cal": 350,
+        "fat": 20,
+        "protein": 40,
+        "carbs": 5,
+        "createdAt": "2025-12-01T10:30:00Z"
+      }
+    ]
+  },
+  "statusCode": 200
+}
+
+Menampilkan statistik dan detail semua meals untuk tanggal tersebut!
+
+================================================================================
+
+STEP 8 (OPTIONAL): SCAN FOOD FROM IMAGE (AI)
+==============================================
+Method: POST
+URL: http://localhost:8080/nutritions/scan
+Headers:
+  Authorization: Bearer <TOKEN>
+  Content-Type: multipart/form-data
+
+Body (Form-Data):
+  - Key: "image" → Value: [Pilih file gambar makanan JPEG/PNG, max 5MB]
+  - Key: "detail" → Value: "optional description" (opsional)
+
+Response (200 OK):
+{
+  "success": true,
+  "message": "Nutrition data retrieved",
+  "responseObject": {
+    "name": "Soto Ayam",
+    "cal": 280,
+    "fat": 12,
+    "protein": 18,
+    "carbs": 25
+  },
+  "statusCode": 200
+}
+
+⭐ Hanya mengembalikan nutrisi dari AI, tidak disimpan otomatis.
+Anda bisa copy-paste nilai ke Step 5 untuk membuat meal.
+
+================================================================================
+                              CHECKLIST TESTING
+================================================================================
+
+[ ] 1. Health Check: GET http://localhost:8080/health-check
+[ ] 2. Register: POST http://localhost:8080/auth/register + body
+[ ] 3. Login: POST http://localhost:8080/auth/login + body → COPY TOKEN
+[ ] 4. Get Preference: GET http://localhost:8080/users/me/preference + auth
+[ ] 5. Create Meal 1: POST http://localhost:8080/nutritions/meals + body + auth
+[ ] 6. Create Meal 2: POST http://localhost:8080/nutritions/meals + body + auth
+[ ] 7. Get Statistics: GET http://localhost:8080/nutritions/2025-12-01 + auth
+[ ] 8 (Optional). Scan Image: POST http://localhost:8080/nutritions/scan + file + auth
+
+================================================================================
+                            POSTMAN SETUP TIPS
+================================================================================
+
+OPTION 1: MENGGUNAKAN ENVIRONMENT VARIABLE
+===========================================
+1. Di response Step 3 (Login), copy value "accessToken"
+2. Di Postman, buka tab "Environments" (atau Ctrl+Shift+E)
+3. Buat environment baru atau use yang sudah ada
+4. Tambah variable: 
+   - Variable name: token
+   - Initial value: <paste_token_dari_response>
+   - Current value: <paste_token_dari_response>
+5. Save environment
+6. Di setiap request yang perlu auth, gunakan header:
+   Authorization: Bearer {{token}}
+7. Otomatis Postman akan replace {{token}} dengan nilai variable
+
+OPTION 2: MANUAL COPY-PASTE SETIAP REQUEST
+===========================================
+1. Copy token dari response Step 3
+2. Di setiap request dengan auth, replace <TOKEN> dengan token yang di-copy
+3. Contoh: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+================================================================================
+                              IMPORTANT NOTES
+================================================================================
+
+✓ Endpoint /nutritions/meals membuat meal dan otomatis detect hari hari ini
+✓ Endpoint /nutritions/:date mengambil statistik nutrisi untuk tanggal tertentu
+✓ Semua nama field di response mengikuti schema Prisma
+✓ Field yang ada: id, date, cal, fat, protein, carbs, targetCal, targetFat, 
+  targetCarbs, targetProtein, meals
+✓ Data cal, fat, protein, carbs adalah TOTAL dari semua meals di hari itu
+✓ targetCal, targetFat, etc adalah dari user preference
+✓ Format date di parameter: YYYY-MM-DD
+✓ Format date di response: ISO 8601 (2025-12-01T00:00:00.000Z)
+✓ Semua request di-filter berdasarkan user yang login (req.user.id)
+✓ Maksimal file gambar (scan): 5MB, format: JPEG atau PNG
+✓ Field "description" di create meal adalah optional
+
+================================================================================
+                            ERROR HANDLING
+================================================================================
+
+401 UNAUTHORIZED
+Response: 
+{
+  "success": false,
+  "message": "Unauthorized",
+  "statusCode": 401
+}
+Action: Pastikan token di Authorization header benar dan belum expired
+
+400 BAD REQUEST (Date Format)
+Response:
+{
+  "success": false,
+  "message": "Invalid date format. Use YYYY-MM-DD",
+  "statusCode": 400
+}
+Action: Gunakan format YYYY-MM-DD di parameter date
+Contoh: /nutritions/2025-12-01
+
+404 NOT FOUND (No Data for Date)
+Response:
+{
+  "success": true,
+  "message": "No nutrition data found for this date",
+  "responseObject": null,
+  "statusCode": 200
+}
+Action: Tidak ada data meal untuk tanggal tersebut, buat meal terlebih dahulu
+
+413 PAYLOAD TOO LARGE
+Action: File gambar terlalu besar, max 5MB
+
+415 UNSUPPORTED MEDIA TYPE
+Action: Format gambar harus JPEG atau PNG
+
+================================================================================
+
+Generated: 1 December 2025
+Status: Ready for Production Testing
+Updated: New endpoints - POST /nutritions/meals & GET /nutritions/:date
+
+================================================================================
+

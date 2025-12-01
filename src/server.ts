@@ -25,7 +25,7 @@ app.use(requestLogger);
 app.use("/health-check", healthCheckRouter);
 app.use("/auth", authRouter);
 app.use("/users", userRouter);
-app.use("/nutrition", nutritionRouter);
+app.use("/nutritions", nutritionRouter);
 
 // Error handlers
 app.use(errorHandler());
