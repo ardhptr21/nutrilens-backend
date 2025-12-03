@@ -5,6 +5,7 @@ import { UpdatePreferenceSchema } from "../preference/preferenceModel";
 export type User = z.infer<typeof UserSchema>;
 export type PublicUser = z.infer<typeof PublicUserSchema>;
 export type UpdateUserPreferenceModel = z.infer<typeof UpdateUserPreferenceSchema>;
+export type CreateUser = z.infer<typeof CreateUserSchema>;
 
 export const UserSchema = z.object({
 	id: commonValidations.id,

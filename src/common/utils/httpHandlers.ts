@@ -1,4 +1,4 @@
-import type { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, RequestHandler, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import type { Field } from "multer";
 import multer from "multer";
@@ -53,7 +53,7 @@ export const validateRequest = (schema: ZodSchema) => async (req: Request, res: 
 	}
 };
 
-export const acceptFiles = (fields: Field[]) => {
+export const acceptFiles: (fields: Field[]) => RequestHandler = (fields: Field[]) => {
 	const upload = multer({ storage: multer.memoryStorage() });
 	return upload.fields(fields);
 };

@@ -4,7 +4,7 @@ import { validateRequest } from "@/common/utils/httpHandlers";
 import { userController } from "./userController";
 import { UpdateUserPreferenceSchema } from "./userModel";
 
-export const userRouter = Router();
+export const userRouter: Router = Router();
 
 userRouter.get("/me", auth, userController.me);
 userRouter

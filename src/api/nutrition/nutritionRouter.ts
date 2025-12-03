@@ -4,7 +4,7 @@ import { acceptFiles, validateRequest } from "@/common/utils/httpHandlers";
 import { nutritionController } from "./nutritionController";
 import { MealUploadSchema, ScanSchema } from "./nutritionModel";
 
-export const nutritionRouter = Router();
+export const nutritionRouter: Router = Router();
 
 nutritionRouter.post(
 	"/scan",
