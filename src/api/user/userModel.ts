@@ -29,5 +29,7 @@ export const UpdateUserPreferenceSchema = z.object({
 });
 
 export const UpdateUserSchema = z.object({
-	name: z.string(),
+	body: z.object({
+		name: z.string(),
+	}),
 });
