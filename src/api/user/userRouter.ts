@@ -6,7 +6,11 @@ import { UpdateUserPreferenceSchema } from "./userModel";
 
 export const userRouter: Router = Router();
 
-userRouter.get("/me", auth, userController.me);
+userRouter
+	.route("/me")
+	.get(auth, userController.me)
+	.patch(auth, validateRequest(UpdateUserPreferenceSchema), userController.updateMe);
+
 userRouter
 	.route("/me/preference")
 	.get(auth, userController.getPreference)

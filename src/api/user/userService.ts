@@ -2,8 +2,15 @@ import { StatusCodes } from "http-status-codes";
 import { ServiceResponse } from "@/common/models/serviceResponse";
 import type { UpdatePreferenceModel } from "../preference/preferenceModel";
 import { preferenceRepository } from "../preference/preferenceRepository";
+import type { UpdateUserModel } from "./userModel";
+import { userRepository } from "./userRepository";
 
 class UserService {
+	async updateUser(userId: string, data: UpdateUserModel) {
+		await userRepository.update(userId, data);
+		return ServiceResponse.success("User updated successfully", null, StatusCodes.OK);
+	}
+
 	async getPreference(userId: string) {
 		const preference = await preferenceRepository.findByUserId(userId);
 		if (!preference) {

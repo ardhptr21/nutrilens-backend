@@ -8,6 +8,11 @@ class UserController {
 		return ServiceResponse.success("User info retrieved", req.user, StatusCodes.OK).send(res);
 	};
 
+	public updateMe: RequestHandler = async (req, res) => {
+		const serviceResponse = await userService.updateUser(req.user.id, req.validated.body);
+		serviceResponse.send(res);
+	};
+
 	public getPreference: RequestHandler = async (req, res) => {
 		const serviceResponse = await userService.getPreference(req.user.id);
 		serviceResponse.send(res);
