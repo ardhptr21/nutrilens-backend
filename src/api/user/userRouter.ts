@@ -2,14 +2,14 @@ import { Router } from "express";
 import { auth } from "@/common/middleware/auth";
 import { validateRequest } from "@/common/utils/httpHandlers";
 import { userController } from "./userController";
-import { UpdateUserPreferenceSchema } from "./userModel";
+import { UpdateUserPreferenceSchema, UpdateUserSchema } from "./userModel";
 
 export const userRouter: Router = Router();
 
 userRouter
 	.route("/me")
 	.get(auth, userController.me)
-	.patch(auth, validateRequest(UpdateUserPreferenceSchema), userController.updateMe);
+	.patch(auth, validateRequest(UpdateUserSchema), userController.updateMe);
 
 userRouter
 	.route("/me/preference")
