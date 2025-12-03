@@ -6,7 +6,20 @@ import { preferenceRepository } from "../preference/preferenceRepository";
 class UserService {
 	async getPreference(userId: string) {
 		const preference = await preferenceRepository.findByUserId(userId);
-		return ServiceResponse.success("Preference retrieved successfully", preference, StatusCodes.OK);
+		if (!preference) {
+			return ServiceResponse.failure("Preference not found", null, StatusCodes.NOT_FOUND);
+		}
+		return ServiceResponse.success(
+			"Preference retrieved successfully",
+			{
+				...preference,
+				targetCal: Number(preference.targetCal),
+				targetFat: Number(preference.targetFat),
+				targetCarbs: Number(preference.targetCarbs),
+				targetProtein: Number(preference.targetProtein),
+			},
+			StatusCodes.OK,
+		);
 	}
 
 	async updatePreference(userId: string, preference: UpdatePreferenceModel) {
